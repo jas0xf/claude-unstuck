@@ -62,6 +62,10 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          # netsh returns exit code 1 for "no rules match" (the expected state
+          # after `off`); don't let that non-zero exit auto-fail the step. We
+          # assert success explicitly via the -match checks + Write-Error below.
+          $PSNativeCommandUseErrorActionPreference = $false
           $ifName = (Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1).Name
           netsh interface ipv6 add address "$ifName" 2001:db8:9::2 | Out-Null
           Start-Sleep -Seconds 2
@@ -77,3 +81,4 @@ jobs:
           $rule = netsh advfirewall firewall show rule name=claude-unstuck-block-2001:db8:9::abc | Out-String
           if ($rule -notmatch "No rules match") { Write-Error "block rule not removed:`n$rule" }
           Write-Output "windows on/off round-trip OK"
+          exit 0
