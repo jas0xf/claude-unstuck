@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <style>
+    .t  { fill: #8b949e; }
+    .big{ fill: #8b949e; font-weight: bold; }
+  </style>
+  <text x="360" y="34" text-anchor="middle" class="big" font-size="18">Claude Code session hang rate — same machine, same hours, same account</text>
+  <text x="360" y="56" text-anchor="middle" class="t" font-size="13">120 paired monitor cycles on a Spectrum residential line (Jun 2026) — only the address family differs</text>
+
+  <!-- axis -->
+  <line x1="110" y1="300" x2="640" y2="300" stroke="#8b949e" stroke-width="1"/>
+
+  <!-- IPv6 bar: 74% -->
+  <rect x="170" y="92" width="140" height="208" rx="6" fill="#f85149" opacity="0.85"/>
+  <text x="240" y="80" text-anchor="middle" class="big" font-size="26">74%</text>
+  <text x="240" y="324" text-anchor="middle" class="t" font-size="15">IPv6</text>
+  <text x="240" y="344" text-anchor="middle" class="t" font-size="12">89 / 120 sessions hung</text>
+
+  <!-- IPv4 bar: 5% -->
+  <rect x="420" y="286" width="140" height="14" rx="6" fill="#3fb950" opacity="0.9"/>
+  <text x="490" y="274" text-anchor="middle" class="big" font-size="26">5%</text>
+  <text x="490" y="324" text-anchor="middle" class="t" font-size="15">IPv4</text>
+  <text x="490" y="344" text-anchor="middle" class="t" font-size="12">6 / 120 sessions hung</text>
+</svg>
