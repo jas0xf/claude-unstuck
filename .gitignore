@@ -1,0 +1,7 @@
+dist/
+*.test
+.DS_Store
+
+# Local agent / session state — never publish
+.omc/
+.claude/
