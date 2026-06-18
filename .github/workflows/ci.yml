@@ -1,0 +1,79 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go build ./cmd/claude-unstuck
+
+  # Real system-mode round-trip on Linux: `on` installs a scoped blackhole route
+  # for an Anthropic IPv6 address, `off` removes it. To keep the test independent
+  # of Anthropic's live DNS (and of the runner's IPv6 connectivity), we add a
+  # hosts entry for a test domain and force Go's pure resolver (GODEBUG=netdns=go),
+  # which reads /etc/hosts directly, so `on` resolves a deterministic address.
+  system-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - run: go build -o claude-unstuck ./cmd/claude-unstuck
+      - name: on / off round-trip
+        run: |
+          set -euxo pipefail
+          echo "2001:db8:9::abc cu-citest.example" | sudo tee -a /etc/hosts
+          sudo env GODEBUG=netdns=go ./claude-unstuck on --domains cu-citest.example
+          ip -6 route show | grep "blackhole 2001:db8:9::abc"
+          ./claude-unstuck status
+          sudo ./claude-unstuck off
+          if ip -6 route show | grep -q "blackhole 2001:db8:9::abc"; then
+            echo "blackhole route not removed" >&2; exit 1
+          fi
+          echo "linux on/off round-trip OK"
+
+  # Real system-mode round-trip on Windows: `on` adds a scoped outbound firewall
+  # block rule for an Anthropic IPv6 address, `off` removes it. Same determinism
+  # trick: a synthetic global IPv6 source + hosts AAAA so `on` resolves a fixed
+  # address. Runners are elevated, so netsh succeeds.
+  system-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - run: go build -o claude-unstuck.exe ./cmd/claude-unstuck
+      - name: on / off round-trip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ifName = (Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1).Name
+          netsh interface ipv6 add address "$ifName" 2001:db8:9::2 | Out-Null
+          Start-Sleep -Seconds 2
+          $hosts = "$env:WINDIR\System32\drivers\etc\hosts"
+          Add-Content -Path $hosts -Value "`n2001:db8:9::abc cu-citest.example"
+          ipconfig /flushdns | Out-Null
+
+          .\claude-unstuck.exe on --domains cu-citest.example
+          $rule = netsh advfirewall firewall show rule name=claude-unstuck-block-2001:db8:9::abc | Out-String
+          if ($rule -notmatch "Block") { Write-Error "block rule not created:`n$rule" }
+          .\claude-unstuck.exe status
+          .\claude-unstuck.exe off
+          $rule = netsh advfirewall firewall show rule name=claude-unstuck-block-2001:db8:9::abc | Out-String
+          if ($rule -notmatch "No rules match") { Write-Error "block rule not removed:`n$rule" }
+          Write-Output "windows on/off round-trip OK"
