@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="420" viewBox="0 0 860 420" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <style>
+    .t   { fill: #8b949e; }
+    .big { fill: #8b949e; font-weight: bold; }
+    .ok  { fill: #3fb950; }
+    .bad { fill: #f85149; }
+    .lane{ stroke: #8b949e; stroke-width: 1.5; }
+  </style>
+  <text x="430" y="32" text-anchor="middle" class="big" font-size="18">What a "hang" looks like on the wire (decrypted SSE, packet capture)</text>
+
+  <!-- healthy lane -->
+  <text x="30" y="92" class="ok" font-size="15" font-weight="bold">healthy</text>
+  <line x1="120" y1="110" x2="820" y2="110" class="lane"/>
+  <circle cx="150" cy="110" r="6" class="ok"/>
+  <text x="150" y="138" text-anchor="middle" class="t" font-size="12">request</text>
+  <circle cx="260" cy="110" r="6" class="ok"/>
+  <text x="260" y="138" text-anchor="middle" class="t" font-size="12">HTTP 200 +</text>
+  <text x="260" y="153" text-anchor="middle" class="t" font-size="12">message_start</text>
+  <g class="ok">
+    <rect x="320" y="103" width="8" height="14" rx="2"/><rect x="340" y="103" width="8" height="14" rx="2"/>
+    <rect x="360" y="103" width="8" height="14" rx="2"/><rect x="380" y="103" width="8" height="14" rx="2"/>
+    <rect x="400" y="103" width="8" height="14" rx="2"/><rect x="420" y="103" width="8" height="14" rx="2"/>
+    <rect x="440" y="103" width="8" height="14" rx="2"/><rect x="460" y="103" width="8" height="14" rx="2"/>
+  </g>
+  <text x="395" y="86" text-anchor="middle" class="t" font-size="12">content deltas stream</text>
+  <circle cx="520" cy="110" r="6" class="ok"/>
+  <text x="520" y="138" text-anchor="middle" class="t" font-size="12">message_stop ✓</text>
+
+  <!-- hung lane -->
+  <text x="30" y="242" class="bad" font-size="15" font-weight="bold">hung</text>
+  <line x1="120" y1="260" x2="820" y2="260" class="lane" stroke-dasharray="0"/>
+  <circle cx="150" cy="260" r="6" class="ok"/>
+  <text x="150" y="288" text-anchor="middle" class="t" font-size="12">request</text>
+  <circle cx="260" cy="260" r="6" class="ok"/>
+  <text x="260" y="288" text-anchor="middle" class="t" font-size="12">HTTP 200 +</text>
+  <text x="260" y="303" text-anchor="middle" class="t" font-size="12">message_start</text>
+  <line x1="290" y1="260" x2="740" y2="260" stroke="#f85149" stroke-width="2" stroke-dasharray="3,7"/>
+  <text x="515" y="240" text-anchor="middle" class="bad" font-size="14" font-weight="bold">… silence …</text>
+  <circle cx="760" cy="260" r="6" class="bad"/>
+  <text x="745" y="288" text-anchor="middle" class="t" font-size="12">client gives up</text>
+  <text x="745" y="303" text-anchor="middle" class="t" font-size="12">(~180s idle timeout)</text>
+
+  <!-- footnote -->
+  <text x="430" y="360" text-anchor="middle" class="t" font-size="13">Packet capture shows 0 TCP retransmissions during the silence —</text>
+  <text x="430" y="380" text-anchor="middle" class="t" font-size="13">the network delivered everything; the response simply stops arriving on the degraded IPv6 path.</text>
+</svg>
