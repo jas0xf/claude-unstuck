@@ -101,8 +101,32 @@ residential IPv6 can take different — sometimes degraded — ingress paths tha
 IPv4 into the API's edge. Whatever the upstream root cause, the observation
 is boringly reproducible: **force IPv4, hangs stop.**
 
-Full methodology — captures, controls across two ISPs, VPN confound analysis —
-in the [research slides](docs/slides/).
+## What the packet captures showed
+
+Two weeks of decrypted-TLS measurement — `mitmproxy` + `tcpdump`, per-event SSE
+timing on real Claude sessions. The freeze isn't random, and every other suspect
+was ruled out by measurement, not guessed:
+
+| Suspect | What the captures showed | Verdict |
+|---|---|---|
+| The app / a stuck process | survives session, process, **and a machine reboot** | not it |
+| The client | every failure is **after the upload is fully ACKed** — then `down 0 bytes`, 120 s of pure silence | not it |
+| A bad region / PoP | residential vs VPN take different first hops, but the `cf-ray` header lands on the **same LAX PoP** | not it |
+| Your IPv6 reputation | a friend's house — same ISP, **different router, different /64** — still hung 50% | not it |
+| The model under load | successful IPv6 replies are the **same speed** as IPv4 (TTFT 1701 ms vs 1652 ms) — v6 gets **dropped, not slowed** | not it |
+| **IPv6 itself** | on large (>100 KB) requests: **IPv6 = 54% no-response, IPv4 = 0%** — on the very same line | **this** |
+
+And it follows the **network, not your computer**: on a Spectrum line IPv6 hung
+**~74%** while IPv4 hung ~5%; move the same machine to an AT&T hotspot and **both
+families dropped to 0%**. IPv6 was a flat ~75%-hang band *all day*; IPv4 stayed
+clean except at the US-evening peak. The fault domain is well-bounded — something
+on the **IPv6 path between the ISP (Charter/Spectrum) and Cloudflare**. The v4 door
+through the same PoP is clean.
+
+> 📊 **Full deck** — 10-region global probe, two-ISP controls, VPN confound
+> analysis, byte-level captures:
+> **[Measuring Claude](docs/slides/measuring-claude.html)**
+> ([view rendered](https://htmlpreview.github.io/?https://github.com/jas0xf/claude-unstuck/blob/main/docs/slides/measuring-claude.html))
 
 ## The whole command set
 
