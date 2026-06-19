@@ -18,8 +18,11 @@ case "$arch" in
   *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
 esac
 
-tag=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" |
-  grep -m1 '"tag_name"' | cut -d'"' -f4)
+# Read the whole API response first, then parse it — piping curl straight into
+# `grep -m1` makes grep close the pipe early, which makes curl print a harmless
+# but alarming "Failed writing body" (broken pipe).
+release=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
+tag=$(printf '%s\n' "$release" | grep -m1 '"tag_name"' | cut -d'"' -f4)
 [ -n "$tag" ] || { echo "Could not determine latest release" >&2; exit 1; }
 ver=${tag#v}
 
