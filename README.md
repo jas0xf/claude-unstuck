@@ -37,11 +37,10 @@ machine, account and hour over IPv4 almost never did.**
 
 ## The 30-second version
 
+Install it:
+
 ```sh
-curl -fsSL https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh | sh   # macOS / Linux
-```
-```powershell
-irm https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.ps1 | iex        # Windows
+curl -fsSL https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh | sh
 ```
 
 **Check** whether you have the bug (changes nothing, costs a few tokens):
