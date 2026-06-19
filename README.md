@@ -4,11 +4,9 @@
 
 ### Claude Code frozen again? It's probably not Claude. It's your network's IPv6 path — and you can prove it in 30 seconds.
 
-[![ci](https://github.com/jas0xf/claude-unstuck/actions/workflows/ci.yml/badge.svg)](https://github.com/jas0xf/claude-unstuck/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/jas0xf/claude-unstuck)](https://github.com/jas0xf/claude-unstuck/releases)
 ![platforms](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![deps](https://img.shields.io/badge/dependencies-zero-brightgreen)
-![root](https://img.shields.io/badge/root%20required-no-success)
 
 </div>
 
@@ -42,6 +40,8 @@ Install it:
 ```sh
 curl -fsSL https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh | sh
 ```
+
+<sub><b>Windows:</b> <code>irm https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.ps1 | iex</code></sub>
 
 **Check** whether you have the bug (changes nothing, costs a few tokens):
 
@@ -147,9 +147,10 @@ everything.
 - **Linux — real session + packet capture:** with `sudo claude-unstuck on`
   active, a plain `claude -p` session produced **0 IPv6 packets and 867 IPv4
   packets** to the Anthropic API. `off` left the routing table clean.
-- **Windows:** the prefix-policy fix/undo round-trip runs in
-  [CI on a real Windows runner](.github/workflows/ci.yml) on every commit.
-  A live Claude-session report from a Windows machine would be welcome.
+- **Windows:** the scoped firewall block/undo is unit-tested on every commit
+  (the command builders run across the CI matrix, Windows included), and the
+  live `netsh` round-trip was validated on real Windows 11. A live
+  Claude-session report from a Windows machine would be welcome.
 
 <details>
 <summary><b>FAQ</b></summary>
@@ -174,15 +175,3 @@ limits produce similar symptoms).
 No. Independent tool from a university course research project. MIT.
 </details>
 
-## Install from source
-
-```sh
-go install github.com/jas0xf/claude-unstuck/cmd/claude-unstuck@latest   # Go 1.24+, zero deps
-```
-
-## If this saved your afternoon
-
-⭐ the repo, and paste your `doctor` snippet into the issue threads — every
-measured path makes the picture clearer for everyone (and for Anthropic).
-
-<sub>MIT · not affiliated with Anthropic · raw captures are never published — they contain prompts and tokens</sub>
