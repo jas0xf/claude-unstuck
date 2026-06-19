@@ -28,4 +28,4 @@ if ($userPath -notlike "*$dest*") {
 
 & (Join-Path $dest "claude-unstuck.exe") version
 Write-Host "Try: claude-unstuck doctor"
-Write-Host "(fix --system requires an elevated terminal)"
+Write-Host "Fix every app: run 'claude-unstuck on' in an Administrator PowerShell."
