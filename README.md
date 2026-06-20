@@ -48,7 +48,13 @@ sudo claude-unstuck on
 claude-unstuck on
 ```
 
-Applied once. Afterward plain `claude` just works — no prefix to remember. It only touches Anthropic's API addresses (on Windows, a scoped outbound firewall rule), records exactly what it changed, and survives until you run `off`. Undo anytime with `sudo claude-unstuck off`.
+Applied once. Afterward plain `claude` just works — no prefix to remember. It only touches Anthropic's API addresses (on Windows, a scoped outbound firewall rule), records exactly what it changed, and is fully reversible — undo anytime with `sudo claude-unstuck off`.
+
+**Does it survive a reboot?** On **Windows** yes — the firewall rule persists on its own (tested with a real reboot). On **macOS/Linux** the fix is a kernel route that a reboot clears, so add **`--persist`** to re-apply it automatically at every boot:
+
+```sh
+sudo claude-unstuck on --persist
+```
 
 **Just this one session, no admin rights:**
 
