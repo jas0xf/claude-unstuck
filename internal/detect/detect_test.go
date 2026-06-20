@@ -73,7 +73,11 @@ func TestVerdict(t *testing.T) {
 		{"both bad", fam("IPv4", Hung, OK), fam("IPv6", Hung, Hung), VerdictBothBad},
 		{"v4 hangs", fam("IPv4", Hung, Hung), fam("IPv6", OK, OK), VerdictV4Hangs},
 		{"no claude", fam("IPv4", NoClaude), fam("IPv6", NoClaude), VerdictNoClaude},
-		{"v6 errors count as bad", fam("IPv4", OK, OK), fam("IPv6", Errored, OK), VerdictV6Hangs},
+		// A v6 ERROR (rate limit / 5xx / empty) is NOT a hang — must not confirm.
+		{"v6 errored only is not a confirmed hang", fam("IPv4", OK, OK), fam("IPv6", Errored, OK), VerdictInconclusive},
+		{"a single v6 hang with v4 clean is confirmed", fam("IPv4", OK, OK), fam("IPv6", OK, Hung), VerdictV6Hangs},
+		{"v6 hung but v4 also errored is both-bad", fam("IPv4", OK, Errored), fam("IPv6", Hung, OK), VerdictBothBad},
+		{"v4 errored only is inconclusive", fam("IPv4", Errored, OK), fam("IPv6", OK, OK), VerdictInconclusive},
 	}
 	for _, c := range cases {
 		got, _ := Verdict(c.v4, c.v6)

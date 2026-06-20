@@ -55,6 +55,29 @@ func (f *FamilyResult) HangRate() float64 {
 	return float64(bad) / float64(len(f.Turns))
 }
 
+// HungCount is the number of turns that actually hung (a mid-stream timeout) —
+// the IPv6-path signature, as distinct from a generic API error.
+func (f *FamilyResult) HungCount() int {
+	n := 0
+	for _, t := range f.Turns {
+		if t.Outcome == Hung {
+			n++
+		}
+	}
+	return n
+}
+
+// BadCount is the number of turns that hung or errored.
+func (f *FamilyResult) BadCount() int {
+	n := 0
+	for _, t := range f.Turns {
+		if t.Outcome == Hung || t.Outcome == Errored {
+			n++
+		}
+	}
+	return n
+}
+
 // Worst returns the most severe outcome observed for the family.
 func (f *FamilyResult) Worst() Outcome {
 	rank := map[Outcome]int{OK: 0, Errored: 1, Hung: 2, NoPath: 3, NoClaude: 4}
