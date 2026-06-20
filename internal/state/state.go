@@ -23,14 +23,8 @@ const EnvDir = "CLAUDE_UNSTUCK_STATE_DIR"
 type State struct {
 	Version   int             `json:"version"`
 	AppliedAt time.Time       `json:"applied_at"`
-	ExpiresAt *time.Time      `json:"expires_at,omitempty"`
 	Domains   []string        `json:"domains"`
 	Applied   []route.Applied `json:"applied"`
-}
-
-// Expired reports whether the state has an expiry in the past.
-func (s *State) Expired(now time.Time) bool {
-	return s.ExpiresAt != nil && now.After(*s.ExpiresAt)
 }
 
 // Dir returns the directory holding state.json. When running under sudo it

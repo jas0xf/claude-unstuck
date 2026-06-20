@@ -67,6 +67,12 @@ func WindowsTaskArgs(binPath, domains string) []string {
 
 // Install registers the boot hook for the current OS.
 func Install(binPath, domains string) (location string, err error) {
+	// Defense in depth: `domains` is embedded verbatim into root-owned boot
+	// artifacts, so reject anything that isn't a plain comma-separated hostname
+	// list (no whitespace, quotes, or shell/directive metacharacters).
+	if strings.ContainsAny(domains, " \t\r\n\"'`;\\") {
+		return "", fmt.Errorf("refusing unsafe domains value %q", domains)
+	}
 	switch runtime.GOOS {
 	case "linux":
 		if err := os.WriteFile(systemdUnitPath, []byte(SystemdUnit(binPath, domains)), 0o644); err != nil {

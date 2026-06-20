@@ -14,11 +14,9 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatalf("Load on empty dir = (%v, %v), want (nil, nil)", s, err)
 	}
 
-	exp := time.Now().Add(24 * time.Hour).Round(time.Second)
 	in := &State{
 		Version:   1,
 		AppliedAt: time.Now().Round(time.Second),
-		ExpiresAt: &exp,
 		Domains:   []string{"api.anthropic.com"},
 		Applied:   []route.Applied{{Method: "blackhole", Target: "2607:6bc0::10"}},
 	}
@@ -31,15 +29,6 @@ func TestRoundTrip(t *testing.T) {
 	}
 	if out == nil || len(out.Applied) != 1 || out.Applied[0].Target != "2607:6bc0::10" {
 		t.Fatalf("Load = %+v", out)
-	}
-	if out.ExpiresAt == nil || !out.ExpiresAt.Equal(exp) {
-		t.Fatalf("ExpiresAt = %v, want %v", out.ExpiresAt, exp)
-	}
-	if out.Expired(time.Now()) {
-		t.Error("should not be expired yet")
-	}
-	if !out.Expired(exp.Add(time.Minute)) {
-		t.Error("should be expired after expiry time")
 	}
 	if err := Clear(); err != nil {
 		t.Fatal(err)

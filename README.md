@@ -146,7 +146,7 @@ And **every other suspect fell**. This began as a CSE 291Y course project — tw
 
 > **On Windows:** drop `sudo` and run in an Administrator PowerShell. The no-admin commands (`claude-unstuck`, `doctor`) are identical on every platform.
 
-`on` resolves Anthropic's **current** addresses at apply time (nothing hardcoded). Extras: `--persist` (survive reboots — macOS/Linux clear routes on reboot; Windows persists on its own) · `--for 24h` (self-expiring).
+`on` resolves Anthropic's **current** addresses at apply time (nothing hardcoded), and re-running it cleanly replaces the previous set. Extra: `--persist` re-applies at every boot (macOS/Linux clear routes on reboot; Windows persists on its own).
 </details>
 
 <details>

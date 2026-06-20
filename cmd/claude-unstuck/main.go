@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -414,7 +415,6 @@ func cmdProbe(args []string) error {
 // re-applies at every boot.
 func cmdOn(args []string) error {
 	fs := flag.NewFlagSet("on", flag.ExitOnError)
-	forDur := fs.Duration("for", 0, "auto-expire after this duration (e.g. 24h)")
 	domains := fs.String("domains", defaultDomains, "comma-separated domains to cover")
 	persist := fs.Bool("persist", false, "also re-apply at every boot (survives reboot)")
 	_ = fs.Parse(args)
@@ -423,6 +423,11 @@ func cmdOn(args []string) error {
 		return fmt.Errorf("`on` needs root — re-run as: sudo claude-unstuck on")
 	}
 	hosts := splitDomains(*domains)
+	for _, h := range hosts {
+		if !validHostname(h) {
+			return fmt.Errorf("invalid domain %q — expected a plain hostname like api.anthropic.com", h)
+		}
+	}
 	ctx := context.Background()
 	// Resolve the Anthropic API's IPv6 addresses; every platform's fix is scoped
 	// to exactly these addresses (blackhole route, or a per-address prefix
@@ -434,15 +439,17 @@ func cmdOn(args []string) error {
 	if len(addrs) == 0 {
 		return fmt.Errorf("no AAAA records resolved for %s — there is no IPv6 path to Anthropic to redirect (IPv6 may already be unavailable here)", *domains)
 	}
+	// Clean up any previously-applied mitigation first, so re-running `on`
+	// (e.g. after Anthropic's IPs rotate — which the boot hook does) doesn't
+	// orphan stale blackhole routes that `off` could no longer remove.
+	if prev, _ := state.Load(); prev != nil && len(prev.Applied) > 0 {
+		_ = route.Remove(prev.Applied)
+	}
 	applied, err := route.Apply(addrs)
 	if err != nil {
 		return err
 	}
 	st := &state.State{Version: 1, AppliedAt: time.Now(), Domains: hosts, Applied: applied}
-	if *forDur > 0 {
-		exp := time.Now().Add(*forDur)
-		st.ExpiresAt = &exp
-	}
 	if err := state.Save(st); err != nil {
 		return fmt.Errorf("fix applied but state not saved (undo manually with `sudo claude-unstuck off`): %w", err)
 	}
@@ -450,21 +457,14 @@ func cmdOn(args []string) error {
 	for _, ap := range applied {
 		fmt.Printf("  %-12s %s\n", ap.Method, ap.Target)
 	}
-	if st.ExpiresAt != nil {
-		fmt.Printf("Expires: %s (enforced on next claude-unstuck invocation)\n", st.ExpiresAt.Format(time.RFC1123))
-	}
 	if *persist {
-		if *forDur > 0 {
-			fmt.Fprintln(os.Stderr, "warning: --persist with --for is contradictory; skipping persistence")
+		loc, err := boot.Install(persistentBinPath(), strings.Join(hosts, ","))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "warning: fix applied but boot-persistence failed: %v\n", err)
 		} else {
-			loc, err := boot.Install(persistentBinPath(), *domains)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "warning: fix applied but boot-persistence failed: %v\n", err)
-			} else {
-				fmt.Printf("Persistence: re-applies at every boot via %s\n", loc)
-				fmt.Println("Note: does NOT refresh on DNS rotation — if Anthropic changes IPs, re-run")
-				fmt.Println("`sudo claude-unstuck on`. Check anytime with `claude-unstuck status`.")
-			}
+			fmt.Printf("Persistence: re-applies at every boot via %s\n", loc)
+			fmt.Println("Note: does NOT refresh on DNS rotation — if Anthropic changes IPs, re-run")
+			fmt.Println("`sudo claude-unstuck on`. Check anytime with `claude-unstuck status`.")
 		}
 	}
 	fmt.Println("Turn off anytime: sudo claude-unstuck off")
@@ -545,17 +545,6 @@ func cmdStatus(args []string) error {
 	if boot.Installed() {
 		fmt.Println("Persistence: ON (re-applies at every boot)")
 	}
-	if st.ExpiresAt != nil {
-		fmt.Printf("Expires: %s\n", st.ExpiresAt.Format(time.RFC1123))
-	}
-	if st.Expired(time.Now()) {
-		if route.NeedsElevation() {
-			fmt.Println("⚠️  fix has EXPIRED — remove it with: sudo claude-unstuck off")
-			return nil
-		}
-		fmt.Println("Fix has expired — removing now...")
-		return cmdOff(nil)
-	}
 	// Detect DNS drift: AAAA records may have rotated since the fix.
 	addrs, _ := dnsutil.ResolveAll(context.Background(), st.Domains, dnsutil.IPv6)
 	covered := map[string]bool{}
@@ -588,4 +577,15 @@ func splitDomains(s string) []string {
 		}
 	}
 	return out
+}
+
+// hostnameRe matches a syntactically valid DNS hostname (RFC 1123 labels).
+var hostnameRe = regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$`)
+
+// validHostname reports whether s is a plain DNS hostname. It rejects spaces,
+// quotes, newlines, and any other character that could break out of the
+// root-owned boot artifacts (systemd unit / launchd plist / scheduled task)
+// that embed the domain list.
+func validHostname(s string) bool {
+	return len(s) > 0 && len(s) <= 253 && hostnameRe.MatchString(s)
 }
