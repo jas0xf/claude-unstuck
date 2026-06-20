@@ -85,21 +85,21 @@ And it's not just you — it's one of the most-reported bugs on the tracker:
   <a href="https://github.com/anthropics/claude-code/issues/32867"><img src="https://img.shields.io/badge/%2332867-stalls-8b949e?labelColor=0d1117&style=flat-square" alt="claude-code issue 32867"></a>
 </p>
 
-We packet-captured these freezes for weeks — decrypted TLS, byte-level, across machines, ISPs and VPNs. The answer was embarrassingly specific: on the affected line, **IPv6 hung 74% of sessions while IPv4 hung 5%** — same machine, same account, same hour (n = 120 per arm).
+We packet-captured these freezes for weeks — decrypted TLS, byte-level, across machines, ISPs and VPNs. The answer was embarrassingly specific: on the affected Spectrum line, **IPv6 hung ~74% of sessions while IPv4 hung ~5%** — same machine, same line, only the address family differs (aggregated across sessions; the hang is time-varying). Counting only the large (>100 KB) requests real coding sessions send, IPv6 went **no-response 54% of the time vs 0% over IPv4**.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="docs/readme/hangrate-light.svg">
-    <img src="docs/readme/hangrate.svg" width="900" alt="Claude Code session hang rate on the same machine, hour and account: IPv6 hung 74% (89/120 sessions), IPv4 hung 5% (6/120). Only the address family differs.">
+    <img src="docs/readme/hangrate.svg" width="900" alt="Claude Code session hang rate, same machine and line, IPv6 vs IPv4: on the affected Spectrum line IPv6 hung about 74% of sessions and IPv4 about 5%, aggregated across sessions. Only the address family differs.">
   </picture>
 </p>
 
-**On the wire**, every freeze looks identical: the server sends `HTTP 200` and `message_start`, then goes silent — with **zero TCP retransmissions**. The network delivered every byte; the response simply never comes on the degraded IPv6 path. That's why nothing on your side ever fixed it.
+**On the wire**, the request uploads in full and the server **ACKs every byte** — then nothing comes back. In the cleanest case it's pure silence: `HTTP 200` and `message_start`, then **0 bytes** until the client gives up around 180s later. (Sometimes the server sends a TCP **RST** or **FIN** instead — but always *after* the upload is fully received.) The network delivered everything; the answer never does. That's why nothing on your side ever fixed it.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="docs/readme/wire-light.svg">
-    <img src="docs/readme/wire.svg" width="900" alt="A healthy session streams content deltas to message_stop; a hung IPv6 session sends HTTP 200 and message_start, then silence until the client gives up at 180s with 0 bytes. Zero TCP retransmissions during the silence.">
+    <img src="docs/readme/wire.svg" width="900" alt="A healthy session streams content deltas to message_stop; a hung IPv6 session sends HTTP 200 and message_start, then the request is fully uploaded and ACKed but 0 bytes come back until the client gives up at 180s. Sometimes the server sends a TCP RST or FIN instead, always after the upload is received.">
   </picture>
 </p>
 
