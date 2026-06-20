@@ -5,3 +5,9 @@ dist/
 # Local agent / session state — never publish
 .omc/
 .claude/
+
+# Private notes — launch playbook, strategy, scratch (never publish)
+.private/
+docs/LAUNCH.md
+/temp/
+/plan/

@@ -66,13 +66,16 @@ Launch Claude with `claude-unstuck` instead of `claude`. Lasts only for the Clau
 
 > **Rule of thumb:** run `on` once and forget it. Reach for bare `claude-unstuck` only when you can't (or don't want to) use admin rights.
 
+## Will it change my whole system? **No.**
+
+It only routes **Claude's traffic to Anthropic** over IPv4. It does **not** disable IPv6, touch your DNS, or change networking for any other program — your browser and every other app are completely unaffected. There's no daemon or background service of any kind; it's one small static binary, and `sudo claude-unstuck off` removes every change it made. Lightweight and surgical by design — that's the whole point.
+
 ## Prove it's your bug first (optional)
 
-Not sure the freeze is the IPv6 thing? `doctor` runs a couple of **real Claude turns** over each path and prints *your* numbers. It changes nothing and costs a few tokens:
+Not sure the freeze is the IPv6 thing? `claude-unstuck doctor` runs a couple of **real Claude turns** over each path and prints *your* numbers — it changes nothing and costs a few tokens. (A plain ping can't reproduce the freeze; it happens *mid-stream*, so `doctor` drives real turns to catch it.)
 
-```sh
-claude-unstuck doctor
-```
+<details>
+<summary>What <code>doctor</code> shows</summary>
 
 ```
   claude-unstuck — checking if Claude Code hangs on your connection
@@ -83,14 +86,18 @@ claude-unstuck doctor
   ➜ DIAGNOSIS  Claude hangs over IPv6 but runs fine over IPv4. Fixable.
 ```
 
-A plain ping can't reproduce the freeze (it happens *mid-stream*), so `doctor` uses real turns to catch the actual hang. Every fixed session ends with a receipt:
+Every fixed session also ends with a receipt confirming all upstream connections used IPv4:
 
 ```
 [claude-unstuck] running over IPv4: claude
 [claude-unstuck] ✅ done — all 10 upstream connections used IPv4
 ```
+</details>
 
-## Command reference
+## Commands & how it works
+
+<details>
+<summary><b>Full command reference</b></summary>
 
 **Safe · no root — start here**
 
@@ -110,6 +117,7 @@ A plain ping can't reproduce the freeze (it happens *mid-stream*), so `doctor` u
 > **On Windows:** drop `sudo` from the commands above and run them in an Administrator PowerShell. The no-admin commands (`claude-unstuck`, `doctor`) are identical on every platform.
 
 `on` resolves Anthropic's **current** addresses at apply time (nothing hardcoded) and is fully reversible. Extras: `sudo claude-unstuck on --persist` (survive reboots) · `--for 24h` (self-expiring).
+</details>
 
 <details>
 <summary><b>Why not just edit /etc/hosts or set NODE_OPTIONS?</b></summary>
