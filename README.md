@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/readme/hero.svg" width="900" alt="claude-unstuck — Claude Code keeps freezing? On affected networks it's not Claude, it's the IPv6 path. Diagnose in 30 seconds, fix in one command.">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/readme/hero-light.svg">
+    <img src="docs/readme/hero.svg" width="900" alt="claude-unstuck — Claude Code keeps freezing? On affected networks it's not Claude, it's the IPv6 path. Diagnose in 30 seconds, fix in one command.">
+  </picture>
 </p>
 
 <p align="center">
@@ -85,19 +88,28 @@ And it's not just you — it's one of the most-reported bugs on the tracker:
 We packet-captured these freezes for weeks — decrypted TLS, byte-level, across machines, ISPs and VPNs. The answer was embarrassingly specific: on the affected line, **IPv6 hung 74% of sessions while IPv4 hung 5%** — same machine, same account, same hour (n = 120 per arm).
 
 <p align="center">
-  <img src="docs/readme/hangrate.svg" width="900" alt="Claude Code session hang rate on the same machine, hour and account: IPv6 hung 74% (89/120 sessions), IPv4 hung 5% (6/120). Only the address family differs.">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/readme/hangrate-light.svg">
+    <img src="docs/readme/hangrate.svg" width="900" alt="Claude Code session hang rate on the same machine, hour and account: IPv6 hung 74% (89/120 sessions), IPv4 hung 5% (6/120). Only the address family differs.">
+  </picture>
 </p>
 
 **On the wire**, every freeze looks identical: the server sends `HTTP 200` and `message_start`, then goes silent — with **zero TCP retransmissions**. The network delivered every byte; the response simply never comes on the degraded IPv6 path. That's why nothing on your side ever fixed it.
 
 <p align="center">
-  <img src="docs/readme/wire.svg" width="900" alt="A healthy session streams content deltas to message_stop; a hung IPv6 session sends HTTP 200 and message_start, then silence until the client gives up at 180s with 0 bytes. Zero TCP retransmissions during the silence.">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/readme/wire-light.svg">
+    <img src="docs/readme/wire.svg" width="900" alt="A healthy session streams content deltas to message_stop; a hung IPv6 session sends HTTP 200 and message_start, then silence until the client gives up at 180s with 0 bytes. Zero TCP retransmissions during the silence.">
+  </picture>
 </p>
 
 And **every other suspect fell**. This began as a CSE 291Y course project — two weeks of decrypted-TLS captures (`mitmproxy` + `tcpdump`, per-event SSE timing). One by one, the app, the client, the region, the VPN, the machine and IP reputation were ruled out; the freeze follows the **network, not your computer** (clean on an AT&T hotspot, broken on Spectrum). The fault domain narrows to the **IPv6 path between the ISP and Cloudflare**.
 
 <p align="center">
-  <img src="docs/readme/investigation.svg" width="900" alt="Every other suspect ruled out by measurement — app, client, region/PoP, VPN, machine, IP reputation — leaving IPv6: 54% no-response on large requests vs 0% on IPv4, on the same line.">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/readme/investigation-light.svg">
+    <img src="docs/readme/investigation.svg" width="900" alt="Every other suspect ruled out by measurement — app, client, region/PoP, VPN, machine, IP reputation — leaving IPv6: 54% no-response on large requests vs 0% on IPv4, on the same line.">
+  </picture>
 </p>
 
 > 📊 **Full deck** — 10-region global probe, two-ISP controls, VPN confound analysis, byte-level captures:

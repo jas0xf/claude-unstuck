@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="The investigation: every other suspect ruled out by measurement — app, client, region/PoP, VPN, machine, IP reputation — leaving IPv6: 54% no-response vs 0% on IPv4 on the same line.">
+  <defs>
+    <filter id="iglow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="sweep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6eaef" stop-opacity="0"/><stop offset="0.5" stop-color="#e6eaef" stop-opacity="0.14"/><stop offset="1" stop-color="#e6eaef" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="1" y="1" width="898" height="468" rx="16" fill="#ffffff" stroke="#d1d9e0"/>
+
+  <!-- header -->
+  <text x="56" y="46" font-size="12" letter-spacing="3" font-family="ui-monospace, Menlo, monospace" fill="#d29922">THE INVESTIGATION · CSE 291Y</text>
+  <text x="56" y="80" font-size="29" font-weight="800" letter-spacing="-0.6" fill="#1f2328">Every other suspect — <tspan fill="#818b98">eliminated.</tspan></text>
+  <text x="56" y="106" font-size="14.5" fill="#59636e">Two weeks of decrypted-TLS captures · two ISPs · 10 regions · with and without VPN.</text>
+
+  <!-- rail -->
+  <line x1="72" y1="140" x2="72" y2="424" stroke="#d1d9e0" stroke-width="2"/>
+
+  <!-- sweep band -->
+  <rect x="40" y="-16" width="824" height="32" rx="8" fill="url(#sweep)">
+    <animateTransform attributeName="transform" type="translate" values="0,140;0,424;0,140" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/>
+  </rect>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <!-- suspect rows (eliminated = neutral) -->
+    <g>
+      <circle cx="72" cy="150" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="154.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="155" font-size="15" font-weight="700" fill="#59636e">App</text>
+      <text x="270" y="155" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">survives the session, the process, even a full reboot</text>
+      <text x="856" y="155" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+    <g>
+      <circle cx="72" cy="195" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="199.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="200" font-size="15" font-weight="700" fill="#59636e">Client</text>
+      <text x="270" y="200" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">every failure lands after the upload is fully ACKed</text>
+      <text x="856" y="200" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+    <g>
+      <circle cx="72" cy="240" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="244.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="245" font-size="15" font-weight="700" fill="#59636e">Region / PoP</text>
+      <text x="270" y="245" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">same Cloudflare LAX edge on every path (cf-ray)</text>
+      <text x="856" y="245" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+    <g>
+      <circle cx="72" cy="285" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="289.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="290" font-size="15" font-weight="700" fill="#59636e">VPN</text>
+      <text x="270" y="290" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">only “fixed” it by sending traffic over IPv4</text>
+      <text x="856" y="290" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+    <g>
+      <circle cx="72" cy="330" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="334.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="335" font-size="15" font-weight="700" fill="#59636e">Machine</text>
+      <text x="270" y="335" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">clean on AT&#38;T v6, broken on Spectrum v6 — both boxes</text>
+      <text x="856" y="335" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+    <g>
+      <circle cx="72" cy="375" r="8" fill="#f6f8fa" stroke="#d1d9e0"/><text x="72" y="379.5" font-size="11" fill="#59636e" text-anchor="middle">✕</text>
+      <text x="104" y="380" font-size="15" font-weight="700" fill="#59636e">IP reputation</text>
+      <text x="270" y="380" font-size="13.5" fill="#818b98" font-family="-apple-system,'Segoe UI',sans-serif">new router, new /64, same Spectrum — still hung</text>
+      <text x="856" y="380" font-size="12" fill="#818b98" text-anchor="end">ruled out</text>
+    </g>
+
+    <!-- culprit (the one live signal = amber) -->
+    <circle cx="72" cy="424" r="14" fill="#d29922" opacity="0.0">
+      <animate attributeName="r" values="9;22;9" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="72" cy="424" r="8.5" fill="#d29922" filter="url(#iglow)"/>
+    <text x="104" y="429" font-size="16" font-weight="700" fill="#1f2328">IPv6 path</text>
+    <text x="270" y="429" font-size="13.5" fill="#1f2328" font-family="-apple-system,'Segoe UI',sans-serif"><tspan fill="#d29922" font-weight="700">54% no-response</tspan> on big requests · IPv4 <tspan fill="#3fb950" font-weight="700">0%</tspan> on the same line</text>
+    <text x="856" y="429" font-size="13" fill="#d29922" font-weight="700" text-anchor="end">← the bug</text>
+  </g>
+</svg>
