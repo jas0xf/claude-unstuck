@@ -8,69 +8,39 @@
   <a href="#why-its-ipv6--the-evidence"><img src="https://img.shields.io/badge/the_research-CSE_291Y-d29922?style=for-the-badge&labelColor=0d1117" alt="the research behind it"></a>
 </p>
 
-> **Claude Code freezing mid-task?** On affected home networks the freeze rides the **IPv6 path to Anthropic** — not Claude itself. `claude-unstuck` pins Claude to IPv4, where it almost never hangs. Two steps below and you're done; the [evidence](#why-its-ipv6--the-evidence) is at the bottom if you want it.
+> **Claude Code freezing mid-task?** On affected home networks the freeze rides the **IPv6 path to Anthropic** — not Claude itself. `claude-unstuck` pins Claude to IPv4, where it almost never hangs. The [evidence](#why-its-ipv6--the-evidence) is at the bottom.
 
 ---
 
-## Quick start — stop the freeze
+## Quick start
 
-**1 — Install it**
-
-**macOS / Linux**
+**Install** — macOS / Linux:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh | sh
 ```
 
-**Windows (PowerShell)**
+Windows (PowerShell):
 
 ```powershell
 irm https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.ps1 | iex
 ```
 
-<sub>Installs a single binary (`~/.local/bin` on macOS/Linux) — no admin to install, no background services. Restart your terminal afterward; if `claude-unstuck` isn't found, add that folder to your `PATH`. Prefer to read first? <a href="https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh">view install.sh</a>.</sub>
+<sub>Single binary in `~/.local/bin`, no admin, no background service — <a href="https://raw.githubusercontent.com/jas0xf/claude-unstuck/main/install.sh">view install.sh</a> first if you like. Restart your terminal after; if `claude-unstuck` isn't found, add that folder to your `PATH`.</sub>
 
-**2 — Fix it** → pick your command below (most people want the first one).
-
-## Which command should I run?
-
-**Most people — fix it once, for every app.**
-
-**macOS / Linux** — `sudo` will prompt for your login password (that's expected):
+**Fix it** — once, for every app:
 
 ```sh
 sudo claude-unstuck on
 ```
 
-**Windows** — open an **Administrator PowerShell** (Start menu → right-click *PowerShell* → *Run as administrator*); there is no `sudo`:
+On **Windows**, run `claude-unstuck on` in an Administrator PowerShell (no `sudo`). Afterward plain `claude` just works — no prefix to remember.
 
-```powershell
-claude-unstuck on
-```
+> **Only Claude's traffic to Anthropic moves to IPv4.** IPv6 stays on, DNS is untouched, no daemon runs, and every other app is unaffected. Reverse anytime with `sudo claude-unstuck off`.
 
-Applied once. Afterward plain `claude` just works — no prefix to remember. It only touches Anthropic's API addresses (on Windows, a scoped outbound firewall rule), records exactly what it changed, and is fully reversible — undo anytime with `sudo claude-unstuck off`.
+<sub>No admin rights? Run `claude-unstuck` in place of `claude` to fix just that one session. Reboot persistence (`--persist`) and other flags are in the [command reference](#commands--options) below.</sub>
 
-**Does it survive a reboot?** On **Windows** yes — the firewall rule persists on its own (tested with a real reboot). On **macOS/Linux** the fix is a kernel route that a reboot clears, so add **`--persist`** to re-apply it automatically at every boot:
-
-```sh
-sudo claude-unstuck on --persist
-```
-
-**Just this one session, no admin rights:**
-
-```sh
-claude-unstuck          # = claude, but pinned to IPv4 — this terminal only
-```
-
-Launch Claude with `claude-unstuck` instead of `claude`. Lasts only for the Claude you start this way; you type it each time. No root, nothing installed, nothing to undo.
-
-> **Rule of thumb:** run `on` once and forget it. Reach for bare `claude-unstuck` only when you can't (or don't want to) use admin rights.
-
-## Will it change my whole system? **No.**
-
-It only routes **Claude's traffic to Anthropic** over IPv4. It does **not** disable IPv6, touch your DNS, or change networking for any other program — your browser and every other app are completely unaffected. There's no daemon or background service of any kind; it's one small static binary, and `sudo claude-unstuck off` removes every change it made. Lightweight and surgical by design — that's the whole point.
-
-## Prove it's your bug first (optional)
+## Check your own path (optional)
 
 Not sure the freeze is the IPv6 thing? `claude-unstuck doctor` runs a couple of **real Claude turns** over each path and prints *your* numbers — it changes nothing and costs a few tokens. (A plain ping can't reproduce the freeze; it happens *mid-stream*, so `doctor` drives real turns to catch it.)
 
@@ -92,43 +62,6 @@ Every fixed session also ends with a receipt confirming all upstream connections
 [claude-unstuck] running over IPv4: claude
 [claude-unstuck] ✅ done — all 10 upstream connections used IPv4
 ```
-</details>
-
-## Commands & how it works
-
-<details>
-<summary><b>Full command reference</b></summary>
-
-**Safe · no root — start here**
-
-| command | what it does |
-|---|---|
-| `claude-unstuck doctor` | check whether you have the bug (a few tokens, changes nothing) |
-| `claude-unstuck` | run Claude over IPv4 for this terminal only (nothing installed) |
-
-**System-wide · needs admin**
-
-| command | what it does |
-|---|---|
-| `sudo claude-unstuck on` | fix every app at once. **Windows:** `claude-unstuck on` in an Administrator PowerShell (no `sudo`) |
-| `sudo claude-unstuck off` | remove the system-wide fix |
-| `claude-unstuck status` | show what's installed; warns if Anthropic's IPs rotated since |
-
-> **On Windows:** drop `sudo` from the commands above and run them in an Administrator PowerShell. The no-admin commands (`claude-unstuck`, `doctor`) are identical on every platform.
-
-`on` resolves Anthropic's **current** addresses at apply time (nothing hardcoded) and is fully reversible. Extras: `sudo claude-unstuck on --persist` (survive reboots) · `--for 24h` (self-expiring).
-</details>
-
-<details>
-<summary><b>Why not just edit /etc/hosts or set NODE_OPTIONS?</b></summary>
-
-We tried. Claude Code is a Bun-compiled binary: packet captures show it **silently bypasses `/etc/hosts`** and ignores Node's `--dns-result-order`. The two mechanisms that demonstrably work are `HTTPS_PROXY` (what the per-session command uses) and the OS routing/firewall layer (what `on` uses).
-</details>
-
-<details>
-<summary><b>Why not disable IPv6 entirely?</b></summary>
-
-Heavy-handed and breaks other things. This touches only Anthropic's API addresses (on Windows, a scoped outbound firewall rule), and `off` restores everything.
 </details>
 
 ## Why it's IPv6 — the evidence
@@ -171,11 +104,44 @@ And **every other suspect fell**. This began as a CSE 291Y course project — tw
 > **[▸ Measuring Claude — open the slides](https://htmlpreview.github.io/?https://github.com/jas0xf/claude-unstuck/blob/main/docs/slides/measuring-claude.html)**
 > · [source](docs/slides/measuring-claude.html)
 
-## How it's verified
+<details>
+<summary><b>And it provably works — packet-level</b></summary>
 
-- **macOS — real session:** all 8 tunneled connections, including the ~1.1 MB context upload, went to IPv4. Session completed normally.
-- **Linux — real session + packet capture:** with `sudo claude-unstuck on` active, a plain `claude -p` session produced **0 IPv6 packets and 867 IPv4 packets** to the Anthropic API. `off` left the routing table clean.
-- **Windows:** the scoped firewall block/undo is unit-tested on every commit (the command builders run across the CI matrix, Windows included), and the live `netsh` round-trip was validated on real Windows 11.
+- **Linux:** with `sudo claude-unstuck on` active, a real `claude -p` session produced **0 IPv6 packets and 867 IPv4 packets** to the Anthropic API; `off` left the routing table clean.
+- **macOS:** all 8 tunneled connections of a real session — including the ~1.1 MB context upload — went to IPv4.
+- **Windows:** the scoped firewall block/undo is unit-tested across the CI matrix, and the live `netsh` round-trip was validated on real Windows 11.
+</details>
+
+## Commands & options
+
+<details>
+<summary><b>Full command reference</b></summary>
+
+**Safe · no root — start here**
+
+| command | what it does |
+|---|---|
+| `claude-unstuck doctor` | check whether you have the bug (a few tokens, changes nothing) |
+| `claude-unstuck` | run Claude over IPv4 for this terminal only (nothing installed) |
+
+**System-wide · needs admin**
+
+| command | what it does |
+|---|---|
+| `sudo claude-unstuck on` | fix every app at once. **Windows:** `claude-unstuck on` in an Administrator PowerShell (no `sudo`) |
+| `sudo claude-unstuck off` | remove the system-wide fix |
+| `claude-unstuck status` | show what's installed; warns if Anthropic's IPs rotated since |
+
+> **On Windows:** drop `sudo` and run in an Administrator PowerShell. The no-admin commands (`claude-unstuck`, `doctor`) are identical on every platform.
+
+`on` resolves Anthropic's **current** addresses at apply time (nothing hardcoded). Extras: `--persist` (survive reboots — macOS/Linux clear routes on reboot; Windows persists on its own) · `--for 24h` (self-expiring).
+</details>
+
+<details>
+<summary><b>Why not just edit /etc/hosts or set NODE_OPTIONS?</b></summary>
+
+We tried. Claude Code is a Bun-compiled binary: packet captures show it **silently bypasses `/etc/hosts`** and ignores Node's `--dns-result-order`. The two mechanisms that demonstrably work are `HTTPS_PROXY` (what the per-session command uses) and the OS routing/firewall layer (what `on` uses).
+</details>
 
 <details>
 <summary><b>FAQ</b></summary>
